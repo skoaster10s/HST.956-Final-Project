@@ -1,0 +1,49 @@
+---
+title: "tableone"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tableone)
+library(plyr)
+library(dplyr)
+
+
+demog <- read.csv('demog.csv')
+colnames(demog)
+
+demog['Sex'] <- as.factor(demog$Sex)
+
+race_from = c(1,2,3,4,5,6,7)
+race_to = c('American Indian or Alaskan Native', 'Asian', 'Native Hawaiian or Other Pacific Islander',
+            'Black or African American', 'White', 'More than one race', 'Unknown')
+demog['PTRACCAT'] <- mapvalues(demog$PTRACCAT, race_from, race_to)
+
+marry_from = c(1,2,3,4,5)
+marry_to = c("Married", "Widowed", "Divorced", "Never married", "Uknown")
+demog['PTMARRY'] <- mapvalues(demog$PTMARRY, marry_from, marry_to)
+
+
+## Vector of variables to summarize
+cols_to_tab = c("Sex","Age", "FHQMOM", "FHQMOMAD", "FHQDAD", "FHQDADAD", "PTRACCAT", "PTMARRY", "PTEDUCAT")
+
+## Create a TableOne object
+tab_1 <- CreateTableOne(vars = cols_to_tab, data = demog, strata="Group")
+tab_1 %>% print(
+  printToggle      = FALSE,
+  showAllLevels    = TRUE,
+  cramVars         = "kon",missing=FALSE
+) %>%
+{data.frame(
+  variable_name             = gsub(" ", "", rownames(.), fixed = TRUE), .,
+  row.names        = NULL,
+  check.names      = FALSE,
+  stringsAsFactors = FALSE)} %>%
+  knitr::kable(caption="Table Title")
+
+```
+
